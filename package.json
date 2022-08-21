@@ -1,0 +1,49 @@
+{
+  "name": "@create-web3/frontend",
+  "version": "0.1.0",
+  "description": "",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "prepare": "husky install",
+    "export": "next export"
+  },
+  "dependencies": {
+    "@geist-ui/core": "^2.3.8",
+    "@rainbow-me/rainbowkit": "^0.5.0",
+    "essential-eth": "^0.6.0",
+    "ethers": "^5.6.9",
+    "jotai": "^1.8.0",
+    "next": "^12.2.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-github-corner": "^2.5.0",
+    "wagmi": "^0.6.4"
+  },
+  "devDependencies": {
+    "@types/node": "^18.7.6",
+    "@types/react": "^18.0.15",
+    "@types/react-dom": "^18.0.6",
+    "autoprefixer": "^10.4.7",
+    "eslint": "^8.22.0",
+    "eslint-config-next": "^12.2.5",
+    "husky": "^8.0.1",
+    "postcss": "^8.4.14",
+    "prettier-plugin-organize-imports": "^3.1.0",
+    "tailwindcss": "^3.1.5",
+    "typescript": "^4.7.4"
+  },
+  "prettier": {
+    "trailingComma": "all",
+    "tabWidth": 2,
+    "singleQuote": true
+  },
+  "lint-staged": {
+    "*": [
+      "prettier -u --write"
+    ]
+  }
+}
