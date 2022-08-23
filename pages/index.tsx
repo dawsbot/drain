@@ -1,11 +1,13 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { GetTokens, SendTokens } from '../components/contract';
+import UD from '../components/contract/UD'
 
 export default function Home() {
   return (
     <div className={''}>
       <header style={{ padding: '1rem' }}>
         <ConnectButton />
+        <UD/>
       </header>
 
       <main

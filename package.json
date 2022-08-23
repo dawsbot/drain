@@ -14,6 +14,8 @@
   "dependencies": {
     "@geist-ui/core": "^2.3.8",
     "@rainbow-me/rainbowkit": "^0.5.0",
+    "@uauth/web3-react": "^2.0.0",
+    "react-bootstrap": "^2.2.0",
     "essential-eth": "^0.6.0",
     "ethers": "^5.6.9",
     "jotai": "^1.8.0",
