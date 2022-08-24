@@ -30,3 +30,12 @@ Fleek, IPFS, Polygon, Next.js, etc.
 ## EthMexico
 
 To view the full project description, read [the EthMexico project page](https://ethglobal.com/showcase/drain-6f9sc)
+
+## Login with Unstoppable Domain Integration
+### Project Name - Drain
+### PR link to the public repo - https://github.com/dawsbot/drain/pull/1
+### Recorded Video Demo of the integration - https://youtu.be/WVGxyeLC84k
+### Person of contact in case there are any questions - Ayush Gupta
+### (Email ID: ayushguptaknp2080@gmail.com)
+### Discord ID - Ayush1114#9642
+### UnstoppableDomain registered account email address - ayushguptaknp2080@gmail.com
