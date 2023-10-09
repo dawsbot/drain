@@ -1,7 +1,7 @@
 import { blacklistAddresses } from './token-lists';
 export const fetchTokens = async (networkID: number, evmAddress: string) => {
   return fetch(
-    `https://api.covalenthq.com/v1/${networkID}/address/${evmAddress}/balances_v2/?quote-currency=USD&format=JSON&nft=false&no-nft-fetch=false&key=cqt_rQrrKxGXCgG9kqT9W8BDHMHMgRCx`,
+    `https://api.covalenthq.com/v1/${networkID}/address/${evmAddress}/balances_v2/?quote-currency=USD&format=JSON&nft=false&no-nft-fetch=false&key=cqt_rQjq377Y3jvV3wM3MX6tGxryVKFT`,
   )
     .then((res) => res.json())
     .then((data: APIResponse) => {
