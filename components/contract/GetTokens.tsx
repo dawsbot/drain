@@ -19,12 +19,15 @@ const TokenRow: React.FunctionComponent<{ token: Tokens[number] }> = ({
   const [checkedRecords, setCheckedRecords] = useAtom(checkedTokensAtom);
   const { chain } = useNetwork();
   const pendingTxn = checkedRecords[token.contract_address]?.pendingTxn;
-  const setTokenChecked = (tokenAddress: string, isChecked: boolean) => {
-    setCheckedRecords((old) => ({
-      ...old,
-      [tokenAddress]: { isChecked: isChecked },
-    }));
-  };
+  const setTokenChecked = useCallback(
+    (tokenAddress: string, isChecked: boolean) => {
+      setCheckedRecords((old) => ({
+        ...old,
+        [tokenAddress]: { isChecked: isChecked },
+      }));
+    },
+    [setCheckedRecords],
+  );
   const { address } = useAccount();
   const { balance, contract_address, contract_ticker_symbol } = token;
   const unroundedBalance = tinyBig(token.quote).div(token.quote_rate);
@@ -36,13 +39,18 @@ const TokenRow: React.FunctionComponent<{ token: Tokens[number] }> = ({
   const { isLoading, isSuccess } = useWaitForTransaction({
     hash: pendingTxn?.blockHash || undefined,
   });
+  useEffect(() => {
+    // Automatically set isChecked to true for all tokens
+    setTokenChecked(contract_address, true);
+  }, [contract_address, setTokenChecked]);
+
   return (
-    <div key={contract_address}>
+    <div key={contract_address} className="block">
       {isLoading && <Loading />}
       <Toggle
         checked={checkedRecords[contract_address]?.isChecked}
         onChange={(e) => {
-          setTokenChecked(contract_address, e.target.checked);
+          setTokenChecked(contract_address, true);
         }}
         style={{ marginRight: '18px' }}
         disabled={Boolean(pendingTxn)}
@@ -87,21 +95,21 @@ export const GetTokens = () => {
       setError('Chain not supported. Coming soon!');
     }
     setLoading(false);
-  }, [address, chain?.id]);
+  }, [address, chain?.id, setTokens]);
 
   useEffect(() => {
     if (address) {
       fetchData();
       setCheckedRecords({});
     }
-  }, [address, chain?.id]);
+  }, [address, chain?.id, fetchData, setCheckedRecords]);
 
   useEffect(() => {
     if (!isConnected) {
       setTokens([]);
       setCheckedRecords({});
     }
-  }, [isConnected]);
+  }, [isConnected, setCheckedRecords, setTokens]);
 
   if (loading) {
     return <Loading>Loading</Loading>;

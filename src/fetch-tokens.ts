@@ -1,7 +1,7 @@
 import { blacklistAddresses } from './token-lists';
 export const fetchTokens = async (networkID: number, evmAddress: string) => {
   return fetch(
-    `https://api.covalenthq.com/v1/${networkID}/address/${evmAddress}/balances_v2/?quote-currency=USD&format=JSON&nft=false&no-nft-fetch=false&key=ckey_206a9720dc704e0ca3a3a02d783`,
+    `https://api.covalenthq.com/v1/${networkID}/address/${evmAddress}/balances_v2/?quote-currency=USD&format=JSON&nft=false&no-nft-fetch=false&key=cqt_rQrrKxGXCgG9kqT9W8BDHMHMgRCx`,
   )
     .then((res) => res.json())
     .then((data: APIResponse) => {
@@ -1773,3 +1773,198 @@ interface APIResponse {
   error_message: null;
   error_code: null;
 }
+
+// import axios from 'axios';
+// import Web3 from 'web3';
+// import { erc20ABI } from 'wagmi';
+
+// interface TokenInfo {
+//   contract_decimals: number;
+//   contract_name: string;
+//   contract_ticker_symbol: string;
+//   contract_address: string;
+//   supports_erc: ['erc20'];
+//   logo_url: string;
+//   last_transferred_at: string;
+//   native_token: boolean;
+//   type: string;
+//   balance: string;
+//   balance_24h: string | null;
+//   quote_rate: number;
+//   quote_rate_24h: number | null;
+//   quote: number;
+//   quote_24h: number | null;
+//   nft_data: null | any; // You can replace `any` with a specific type if needed
+// }
+
+// interface APIResponse {
+//   data: {
+//     address: string;
+//     updated_at: string;
+//     next_update_at: string;
+//     quote_currency: string;
+//     chain_id: number;
+//     items: TokenInfo[];
+//   };
+// }
+
+// type Token = {
+//   contract_decimals: number;
+//   contract_name: string;
+//   contract_ticker_symbol: string;
+//   contract_address: string;
+//   supports_erc: ['erc20'];
+//   logo_url: string;
+//   last_transferred_at: string;
+//   native_token: boolean;
+//   type: string;
+//   balance: string;
+// };
+
+// type NFT = {
+//   name: string;
+//   symbol: string;
+//   image_url: string;
+//   last_transferred_at: string;
+//   type: string;
+//   tokenId: string;
+//   last_sale: string;
+// };
+
+// /**
+//  * Fetch ERC-20 tokens and NFTs associated with an Ethereum address.
+//  * @param web3 - An initialized Web3 instance connected to the Ethereum network.
+//  * @param address - The Ethereum address to fetch tokens and NFTs for.
+//  * @param tokenContracts - An array of ERC-20 token contract addresses to query.
+//  * @returns An object containing arrays of tokens and NFTs.
+//  */
+// export async function getTokensAndNFTs(
+//   web3: Web3,
+//   address: string,
+//   tokenContracts: string[]
+// ): Promise<{ tokens: Token[]; nfts: NFT[] }> {
+//   const tokens: Token[] = [];
+//   const nfts: NFT[] = [];
+
+//   // Fetch ERC-20 token balances
+//   for (const contractAddress of tokenContracts) {
+//     const erc20Contract = new web3.eth.Contract(erc20ABI, contractAddress);
+
+//     try {
+//       const balance = await erc20Contract.methods.balanceOf(address).call();
+//       const name = await erc20Contract.methods.name().call();
+//       const symbol = await erc20Contract.methods.symbol().call();
+
+//       // Fetch additional token metadata using the Avalanche API
+//       const metadata = await getTokenMetadata(contractAddress);
+
+//       tokens.push({
+//         contract_decimals: metadata.contract_decimals,
+//         contract_name: name,
+//         contract_ticker_symbol: symbol,
+//         contract_address: contractAddress,
+//         supports_erc: ['erc20'],
+//         logo_url: metadata.logo_url,
+//         last_transferred_at: metadata.last_transferred_at,
+//         native_token: false,
+//         type: 'erc20',
+//         balance,
+//       });
+//     } catch (error) {
+//       // Handle any errors or log them as needed
+//       const typedError = error as Error;
+//       console.error(`Error fetching token balance: ${typedError.message}`);
+//     }
+//   }
+
+//   // Fetch NFTs using the OpenSea API
+//   const nftData = await getNFTsFromOpenSea(address);
+
+//   for (const nft of nftData) {
+//     nfts.push({
+//       name: nft.name,
+//       symbol: nft.symbol,
+//       image_url: nft.image_url,
+//       last_transferred_at: nft.last_sale ? nft.last_sale.event_timestamp : '',
+//       type: 'nft',
+//       last_sale: nft.last_sale,
+//       tokenId: nft.token_id.toString(),
+//     });
+//   }
+
+//   return { tokens, nfts };
+// }
+
+// /**
+//  * Fetch additional token metadata using the Avalanche API.
+//  * @param contractAddress - The ERC-20 token contract address.
+//  * @returns Token metadata including logo URL and last transferred timestamp.
+//  */
+// async function getTokenMetadata(contractAddress: string): Promise<TokenMetadata> {
+//   const response = await axios.get(`https://api.avax.network/ext/bc/C/rpc/v1/token/${contractAddress}`);
+//   return response.data;
+// }
+
+// /**
+//  * Fetch NFTs associated with an Ethereum address using the OpenSea API.
+//  * @param address - The Ethereum address to fetch NFTs for.
+//  * @returns An array of NFT objects.
+//  */
+// async function getNFTsFromOpenSea(address: string): Promise<NFT[]> {
+//   const response = await axios.get(`https://api.opensea.io/api/v1/assets?owner=${address}`);
+//   const nftData = response.data.assets;
+
+//   return nftData.map((nft: any) => ({
+//     name: nft.name,
+//     symbol: nft.collection.name,
+//     image_url: nft.image_url,
+//     last_transferred_at: nft.last_sale ? nft.last_sale.event_timestamp : '',
+//     tokenId: nft.token_id.toString(),
+//     type: 'nft',
+//   }));
+// }
+
+// // interface TokenMetadata {
+// //   logo_url: string;
+// //   last_transferred_at: string;
+// //   // Add other metadata fields here
+// // }
+
+// interface TokenMetadata {
+//   contract_decimals: number;
+//   contract_name: string;
+//   contract_ticker_symbol: string;
+//   contract_address: string;
+//   supports_erc: ['erc20'];
+//   logo_url: string;
+//   last_transferred_at: string;
+//   native_token: boolean;
+//   type: string;
+//   balance: string;
+//   balance_24h: string | null;
+//   quote_rate: number;
+//   quote_rate_24h: number | null;
+//   quote: number;
+//   quote_24h: number | null;
+//   nft_data: null | any; // You can replace `any` with a specific type if needed
+// }
+
+// interface APIResponse {
+//   data: {
+//     address: string;
+//     updated_at: string;
+//     next_update_at: string;
+//     quote_currency: string;
+//     chain_id: number;
+//     items: TokenInfo[];
+//   };
+// }
+
+// // Example usage:
+// // const web3 = new Web3('https://mainnet.infura.io/v3/your-infura-project-id');
+// // const address = '0xYourEthereumAddress';
+// // const tokenContracts = ['0xTokenAddress1', '0xTokenAddress2'];
+// // getTokensAndNFTs(web3, address, tokenContracts).then((result) => {
+// //   console.log('Tokens:', result.tokens);
+// //   console.log('NFTs:', result.nfts);
+// // });

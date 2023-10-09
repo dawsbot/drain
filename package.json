@@ -13,15 +13,15 @@
   },
   "dependencies": {
     "@geist-ui/core": "^2.3.8",
-    "@rainbow-me/rainbowkit": "^0.5.0",
+    "@rainbow-me/rainbowkit": "^0.12.18",
     "essential-eth": "^0.6.0",
     "ethers": "^5.6.9",
     "jotai": "^1.8.0",
-    "next": "^12.2.5",
+    "next": "^12.3.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-github-corner": "^2.5.0",
-    "wagmi": "^0.6.4"
+    "wagmi": "^0.12.19"
   },
   "devDependencies": {
     "@types/node": "^18.7.6",

