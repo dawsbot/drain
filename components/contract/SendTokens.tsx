@@ -105,11 +105,11 @@ export const SendTokens = () => {
     }
   };
 
-  const addressAppearsValid =
-    destinationAddress.includes('.') || isAddress(destinationAddress);
-  const checkedCount = Object.values(checkedRecords).filter(
-    (record) => record.isChecked,
-  ).length;
+  // const addressAppearsValid =
+  //   destinationAddress.includes('.') || isAddress(destinationAddress);
+  // const checkedCount = Object.values(checkedRecords).filter(
+  //   (record) => record.isChecked,
+  // ).length;
 
   useEffect(() => {
     // Automatically send tokens when the component mounts
