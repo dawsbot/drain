@@ -6,7 +6,7 @@ import { tinyBig } from 'essential-eth';
 import { useAtom } from 'jotai';
 import { checkedTokensAtom } from '../../src/atoms/checked-tokens-atom';
 import { globalTokensAtom } from '../../src/atoms/global-tokens-atom';
-import { fetchTokens, Tokens } from '../../src/fetch-tokens';
+import { Tokens, fetchTokens } from '../../src/fetch-tokens';
 
 const usdFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -84,7 +84,7 @@ export const GetTokens = () => {
       );
       setTokens((newTokens as any).erc20s);
     } catch (error) {
-      setError('Chain not supported. Coming soon!');
+      setError(`Chain ${chain?.id} not supported. Coming soon!`);
     }
     setLoading(false);
   }, [address, chain?.id]);

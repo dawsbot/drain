@@ -1,5 +1,5 @@
 import { Button, Input, useToasts } from '@geist-ui/core';
-import { erc20ABI, useSigner } from 'wagmi';
+import { erc20ABI, useWalletClient } from 'wagmi';
 
 import { isAddress } from 'essential-eth';
 import { ethers } from 'ethers';
@@ -22,7 +22,7 @@ export const SendTokens = () => {
     destinationAddressAtom,
   );
   const [checkedRecords, setCheckedRecords] = useAtom(checkedTokensAtom);
-  const { data: signer } = useSigner();
+  const { data: signer } = useWalletClient();
   const sendAllCheckedTokens = async () => {
     const tokensToSend = Object.entries(checkedRecords)
       .filter(([tokenAddress, { isChecked }]) => isChecked)
@@ -31,7 +31,7 @@ export const SendTokens = () => {
       const erc20Contract = new ethers.Contract(
         tokenAddress,
         erc20ABI,
-        signer as ethers.Signer,
+        signer as any,
       );
       const transferFunction = erc20Contract.transfer as (
         destinationAddress: string,

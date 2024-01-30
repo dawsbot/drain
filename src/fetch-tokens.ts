@@ -1,7 +1,25 @@
+import { z } from 'zod';
 import { blacklistAddresses } from './token-lists';
-export const fetchTokens = async (networkID: number, evmAddress: string) => {
+const COVALENT_API_KEY = z
+  .string()
+  .parse(process.env.NEXT_PUBLIC_COVALENT_API_KEY);
+type ChainName = 'eth-mainnet' | 'matic-mainnet';
+function selectChainName(chainId: number): ChainName {
+  switch (chainId) {
+    case 1:
+      return 'eth-mainnet';
+    case 137:
+      return 'matic-mainnet';
+    default:
+      const errorMessage = `chainId "${chainId}" not supported`;
+      alert(errorMessage);
+      throw new Error(errorMessage);
+  }
+}
+export const fetchTokens = async (chainId: number, evmAddress: string) => {
+  const chainName = selectChainName(chainId);
   return fetch(
-    `https://api.covalenthq.com/v1/${networkID}/address/${evmAddress}/balances_v2/?quote-currency=USD&format=JSON&nft=false&no-nft-fetch=false&key=ckey_206a9720dc704e0ca3a3a02d783`,
+    `https://api.covalenthq.com/v1/${chainName}/address/${evmAddress}/balances_v2/?quote-currency=USD&format=JSON&nft=false&no-nft-fetch=false&key=${COVALENT_API_KEY}`,
   )
     .then((res) => res.json())
     .then((data: APIResponse) => {
