@@ -117,6 +117,7 @@ export const SendTokens = () => {
             marginLeft: '10px',
             marginRight: '10px',
           }}
+          crossOrigin={undefined}
         />
         <Button
           type="secondary"
