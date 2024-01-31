@@ -3,13 +3,27 @@ import { z } from 'zod';
 import { Tokens } from '../../../../src/fetch-tokens';
 import { blacklistAddresses } from '../../../../src/token-lists';
 const COVALENT_API_KEY = z.string().parse(process.env.COVALENT_API_KEY);
-type ChainName = 'eth-mainnet' | 'matic-mainnet';
+type ChainName =
+  | 'eth-mainnet'
+  | 'matic-mainnet'
+  | 'optimism-mainnet'
+  | 'arbitrum-mainnet'
+  | 'bsc-mainnet'
+  | 'gnosis-mainnet';
 function selectChainName(chainId: number): ChainName {
   switch (chainId) {
     case 1:
       return 'eth-mainnet';
+    case 10:
+      return 'optimism-mainnet';
+    case 56:
+      return 'bsc-mainnet';
+    case 100:
+      return 'gnosis-mainnet';
     case 137:
       return 'matic-mainnet';
+    case 42161:
+      return 'arbitrum-mainnet';
     default:
       const errorMessage = `chainId "${chainId}" not supported`;
       alert(errorMessage);

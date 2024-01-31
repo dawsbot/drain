@@ -18,15 +18,7 @@ import { publicProvider } from 'wagmi/providers/public';
 import { getDefaultWallets, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import '@rainbow-me/rainbowkit/styles.css';
 
-import {
-  arbitrum,
-  avalanche,
-  bsc,
-  gnosis,
-  optimism,
-  polygon,
-  polygonMumbai,
-} from 'viem/chains';
+import { arbitrum, bsc, gnosis, optimism, polygon } from 'viem/chains';
 import { z } from 'zod';
 import { useIsMounted } from '../hooks';
 
@@ -35,7 +27,7 @@ const walletConnectProjectId = z
   .parse(process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID);
 
 const { chains, publicClient } = configureChains(
-  [mainnet, polygon, optimism, arbitrum, avalanche, bsc, gnosis, polygonMumbai],
+  [mainnet, polygon, optimism, arbitrum, bsc, gnosis],
   [publicProvider()],
 );
 
