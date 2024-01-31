@@ -7,98 +7,40 @@ import '../styles/globals.css';
 
 // Imports
 import {
-  Chain,
-  chain,
   configureChains,
-  createClient,
+  createConfig,
+  mainnet,
+  // createClient,
   WagmiConfig,
 } from 'wagmi';
-import { alchemyProvider } from 'wagmi/providers/alchemy';
 import { publicProvider } from 'wagmi/providers/public';
 
 import { getDefaultWallets, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import '@rainbow-me/rainbowkit/styles.css';
 
+import { arbitrum, bsc, gnosis, optimism, polygon } from 'viem/chains';
+import { z } from 'zod';
 import { useIsMounted } from '../hooks';
 
-// Get environment variables
-const alchemyId = process.env.NEXT_PUBLIC_ALCHEMY_ID as string;
-// const infuraId = process.env.NEXT_PUBLIC_INFURA_ID as string;
+const walletConnectProjectId = z
+  .string()
+  .parse(process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID);
 
-const bscChain: Chain = {
-  id: 56,
-  name: 'Binance Smart Chain',
-  network: 'bsc',
-  nativeCurrency: {
-    decimals: 18,
-    name: 'BNB',
-    symbol: 'BNB',
-  },
-  rpcUrls: {
-    default: 'https://bsc-dataseed3.defibit.io',
-  },
-  blockExplorers: {
-    default: { name: 'BSCScan', url: 'https://bscscan.com/' },
-  },
-  testnet: false,
-};
-const gnosisChain: Chain = {
-  id: 100,
-  name: 'Gnosis Chain',
-  network: 'gnosis',
-  nativeCurrency: {
-    decimals: 18,
-    name: 'XDAI',
-    symbol: 'XDAI',
-  },
-  rpcUrls: {
-    default: 'https://rpc.ankr.com/gnosis',
-  },
-  blockExplorers: {
-    default: { name: 'GnosisScan', url: 'https://gnosisscan.io/' },
-  },
-  testnet: false,
-};
-const avalancheChain: Chain = {
-  id: 43_114,
-  name: 'Avalanche',
-  network: 'avalanche',
-  nativeCurrency: {
-    decimals: 18,
-    name: 'Avalanche',
-    symbol: 'AVAX',
-  },
-  rpcUrls: {
-    default: 'https://api.avax.network/ext/bc/C/rpc',
-  },
-  blockExplorers: {
-    default: { name: 'SnowTrace', url: 'https://snowtrace.io' },
-  },
-  testnet: false,
-};
-const { chains, provider } = configureChains(
-  [
-    chain.mainnet,
-    chain.polygon,
-    chain.optimism,
-    chain.arbitrum,
-    avalancheChain,
-    bscChain,
-    gnosisChain,
-    chain.polygonMumbai,
-  ],
-  [alchemyProvider({ apiKey: alchemyId }), publicProvider()],
+const { chains, publicClient } = configureChains(
+  [mainnet, polygon, optimism, arbitrum, bsc, gnosis],
+  [publicProvider()],
 );
 
 const { connectors } = getDefaultWallets({
   appName: 'Drain',
+  projectId: walletConnectProjectId,
   chains,
 });
 
-const wagmiClient = createClient({
+const wagmiConfig = createConfig({
   autoConnect: true,
   connectors,
-  provider,
+  publicClient,
 });
 
 const App = ({ Component, pageProps }: AppProps) => {
@@ -113,7 +55,7 @@ const App = ({ Component, pageProps }: AppProps) => {
         bannerColor="#e056fd"
       />
 
-      <WagmiConfig client={wagmiClient}>
+      <WagmiConfig config={wagmiConfig}>
         <RainbowKitProvider coolMode chains={chains}>
           <NextHead>
             <title>Drain</title>
