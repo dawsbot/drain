@@ -80,8 +80,8 @@ export const SendTokens = () => {
             addressAppearsValid
               ? 'success'
               : destinationAddress.length > 0
-              ? 'warning'
-              : 'default'
+                ? 'warning'
+                : 'default'
           }
           width="100%"
           style={{

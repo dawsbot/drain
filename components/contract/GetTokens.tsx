@@ -6,7 +6,7 @@ import { tinyBig } from 'essential-eth';
 import { useAtom } from 'jotai';
 import { checkedTokensAtom } from '../../src/atoms/checked-tokens-atom';
 import { globalTokensAtom } from '../../src/atoms/global-tokens-atom';
-import { httpFetchTokens, Tokens } from '../../src/fetch-tokens';
+import { Tokens, httpFetchTokens } from '../../src/fetch-tokens';
 
 const usdFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -31,8 +31,8 @@ const TokenRow: React.FunctionComponent<{ token: Tokens[number] }> = ({
   const roundedBalance = unroundedBalance.lt(0.001)
     ? unroundedBalance.round(10)
     : unroundedBalance.gt(1000)
-    ? unroundedBalance.round(2)
-    : unroundedBalance.round(5);
+      ? unroundedBalance.round(2)
+      : unroundedBalance.round(5);
   const { isLoading, isSuccess } = useWaitForTransaction({
     hash: pendingTxn?.blockHash || undefined,
   });
