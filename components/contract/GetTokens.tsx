@@ -6,7 +6,7 @@ import { tinyBig } from 'essential-eth';
 import { useAtom } from 'jotai';
 import { checkedTokensAtom } from '../../src/atoms/checked-tokens-atom';
 import { globalTokensAtom } from '../../src/atoms/global-tokens-atom';
-import { Tokens, httpFetchTokens } from '../../src/fetch-tokens';
+import { httpFetchTokens, Tokens } from '../../src/fetch-tokens';
 
 const usdFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -18,7 +18,8 @@ const TokenRow: React.FunctionComponent<{ token: Tokens[number] }> = ({
 }) => {
   const [checkedRecords, setCheckedRecords] = useAtom(checkedTokensAtom);
   const { chain } = useNetwork();
-  const pendingTxn = checkedRecords[token.contract_address]?.pendingTxn;
+  const pendingTxn =
+    checkedRecords[token.contract_address as `0x${string}`]?.pendingTxn;
   const setTokenChecked = (tokenAddress: string, isChecked: boolean) => {
     setCheckedRecords((old) => ({
       ...old,
@@ -40,7 +41,7 @@ const TokenRow: React.FunctionComponent<{ token: Tokens[number] }> = ({
     <div key={contract_address}>
       {isLoading && <Loading />}
       <Toggle
-        checked={checkedRecords[contract_address]?.isChecked}
+        checked={checkedRecords[contract_address as `0x${string}`]?.isChecked}
         onChange={(e) => {
           setTokenChecked(contract_address, e.target.checked);
         }}

@@ -13,7 +13,6 @@ import {
   // createClient,
   WagmiConfig,
 } from 'wagmi';
-import { alchemyProvider } from 'wagmi/providers/alchemy';
 import { publicProvider } from 'wagmi/providers/public';
 
 import { getDefaultWallets, RainbowKitProvider } from '@rainbow-me/rainbowkit';
@@ -31,15 +30,13 @@ import {
 import { z } from 'zod';
 import { useIsMounted } from '../hooks';
 
-// Get environment variables
-const alchemyId = process.env.NEXT_PUBLIC_ALCHEMY_ID as string;
 const walletConnectProjectId = z
   .string()
   .parse(process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID);
 
 const { chains, publicClient } = configureChains(
   [mainnet, polygon, optimism, arbitrum, avalanche, bsc, gnosis, polygonMumbai],
-  [alchemyProvider({ apiKey: alchemyId }), publicProvider()],
+  [publicProvider()],
 );
 
 const { connectors } = getDefaultWallets({
