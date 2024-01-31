@@ -6,7 +6,7 @@ import { tinyBig } from 'essential-eth';
 import { useAtom } from 'jotai';
 import { checkedTokensAtom } from '../../src/atoms/checked-tokens-atom';
 import { globalTokensAtom } from '../../src/atoms/global-tokens-atom';
-import { Tokens, fetchTokens } from '../../src/fetch-tokens';
+import { httpFetchTokens, Tokens } from '../../src/fetch-tokens';
 
 const usdFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -78,11 +78,11 @@ export const GetTokens = () => {
     setLoading(true);
     try {
       setError('');
-      const newTokens = await fetchTokens(
+      const newTokens = await httpFetchTokens(
         chain?.id as number,
         address as string,
       );
-      setTokens((newTokens as any).erc20s);
+      setTokens((newTokens as any).data.erc20s);
     } catch (error) {
       setError(`Chain ${chain?.id} not supported. Coming soon!`);
     }
@@ -113,7 +113,7 @@ export const GetTokens = () => {
 
   return (
     <div style={{ margin: '20px' }}>
-      {isConnected && tokens.length === 0 && `No tokens on ${chain?.name}`}
+      {isConnected && tokens?.length === 0 && `No tokens on ${chain?.name}`}
       {tokens.map((token) => (
         <TokenRow token={token} key={token.contract_address} />
       ))}
