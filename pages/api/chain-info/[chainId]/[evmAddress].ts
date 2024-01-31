@@ -72,8 +72,6 @@ export default async function handler(
   res: NextApiResponse,
 ) {
   try {
-    console.log('query: ');
-    console.dir(req.query);
     const { chainId, evmAddress } = requestQuerySchema.parse(req.query);
 
     const response = await fetchTokens(chainId, evmAddress);
