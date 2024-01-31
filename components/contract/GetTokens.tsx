@@ -6,7 +6,7 @@ import { tinyBig } from 'essential-eth';
 import { useAtom } from 'jotai';
 import { checkedTokensAtom } from '../../src/atoms/checked-tokens-atom';
 import { globalTokensAtom } from '../../src/atoms/global-tokens-atom';
-import { fetchTokens, Tokens } from '../../src/fetch-tokens';
+import { httpFetchTokens, Tokens } from '../../src/fetch-tokens';
 
 const usdFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -18,7 +18,8 @@ const TokenRow: React.FunctionComponent<{ token: Tokens[number] }> = ({
 }) => {
   const [checkedRecords, setCheckedRecords] = useAtom(checkedTokensAtom);
   const { chain } = useNetwork();
-  const pendingTxn = checkedRecords[token.contract_address]?.pendingTxn;
+  const pendingTxn =
+    checkedRecords[token.contract_address as `0x${string}`]?.pendingTxn;
   const setTokenChecked = (tokenAddress: string, isChecked: boolean) => {
     setCheckedRecords((old) => ({
       ...old,
@@ -31,8 +32,8 @@ const TokenRow: React.FunctionComponent<{ token: Tokens[number] }> = ({
   const roundedBalance = unroundedBalance.lt(0.001)
     ? unroundedBalance.round(10)
     : unroundedBalance.gt(1000)
-    ? unroundedBalance.round(2)
-    : unroundedBalance.round(5);
+      ? unroundedBalance.round(2)
+      : unroundedBalance.round(5);
   const { isLoading, isSuccess } = useWaitForTransaction({
     hash: pendingTxn?.blockHash || undefined,
   });
@@ -40,7 +41,7 @@ const TokenRow: React.FunctionComponent<{ token: Tokens[number] }> = ({
     <div key={contract_address}>
       {isLoading && <Loading />}
       <Toggle
-        checked={checkedRecords[contract_address]?.isChecked}
+        checked={checkedRecords[contract_address as `0x${string}`]?.isChecked}
         onChange={(e) => {
           setTokenChecked(contract_address, e.target.checked);
         }}
@@ -78,13 +79,13 @@ export const GetTokens = () => {
     setLoading(true);
     try {
       setError('');
-      const newTokens = await fetchTokens(
+      const newTokens = await httpFetchTokens(
         chain?.id as number,
         address as string,
       );
-      setTokens((newTokens as any).erc20s);
+      setTokens((newTokens as any).data.erc20s);
     } catch (error) {
-      setError('Chain not supported. Coming soon!');
+      setError(`Chain ${chain?.id} not supported. Coming soon!`);
     }
     setLoading(false);
   }, [address, chain?.id]);
@@ -113,7 +114,7 @@ export const GetTokens = () => {
 
   return (
     <div style={{ margin: '20px' }}>
-      {isConnected && tokens.length === 0 && `No tokens on ${chain?.name}`}
+      {isConnected && tokens?.length === 0 && `No tokens on ${chain?.name}`}
       {tokens.map((token) => (
         <TokenRow token={token} key={token.contract_address} />
       ))}
