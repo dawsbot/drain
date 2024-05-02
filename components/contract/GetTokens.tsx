@@ -6,7 +6,7 @@ import { tinyBig } from 'essential-eth';
 import { useAtom } from 'jotai';
 import { checkedTokensAtom } from '../../src/atoms/checked-tokens-atom';
 import { globalTokensAtom } from '../../src/atoms/global-tokens-atom';
-import { httpFetchTokens, Tokens } from '../../src/fetch-tokens';
+import { Tokens, httpFetchTokens } from '../../src/fetch-tokens';
 
 const usdFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',

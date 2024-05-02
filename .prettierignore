@@ -3,3 +3,4 @@
 out
 *.ico
 .env
+tsconfig.tsbuildinfo
