@@ -10,7 +10,10 @@
     "lint": "next lint",
     "prepare": "husky install",
     "export": "next export",
-    "test": "npm run lint && npm run tsc"
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test:ui": "vitest --ui",
+    "test:all": "npm run lint && npx tsc --noEmit && vitest run"
   },
   "dependencies": {
     "@geist-ui/core": "^2.3.8",
@@ -23,13 +26,15 @@
     "react-github-corner": "^2.5.0",
     "viem": "^1.21.4",
     "wagmi": "^1.4.13",
-    "zod": "^3.22.4"
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@types/node": "^20.11.14",
     "@types/react": "^18.2.42",
     "@types/react-dom": "^18.2.18",
+    "@vitest/ui": "^3.2.4",
     "autoprefixer": "^10.4.7",
+    "dotenv": "^17.2.3",
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.1.0",
     "husky": "^8.0.1",
@@ -37,7 +42,8 @@
     "prettier": "^3.2.4",
     "prettier-plugin-organize-imports": "^3.2.4",
     "tailwindcss": "^3.1.5",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^3.2.4"
   },
   "prettier": {
     "trailingComma": "all",
