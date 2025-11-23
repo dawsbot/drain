@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useAccount, useNetwork, useWaitForTransaction } from 'wagmi';
+import { useAccount, useWaitForTransactionReceipt } from 'wagmi';
 
 import { Loading, Toggle } from '@geist-ui/core';
 import { tinyBig } from 'essential-eth';
@@ -17,7 +17,7 @@ const TokenRow: React.FunctionComponent<{ token: Tokens[number] }> = ({
   token,
 }) => {
   const [checkedRecords, setCheckedRecords] = useAtom(checkedTokensAtom);
-  const { chain } = useNetwork();
+  const { address, chain } = useAccount();
   const pendingTxn =
     checkedRecords[token.contract_address as `0x${string}`]?.pendingTxn;
   const setTokenChecked = (tokenAddress: string, isChecked: boolean) => {
@@ -26,7 +26,6 @@ const TokenRow: React.FunctionComponent<{ token: Tokens[number] }> = ({
       [tokenAddress]: { isChecked: isChecked },
     }));
   };
-  const { address } = useAccount();
   const { balance, contract_address, contract_ticker_symbol } = token;
   const unroundedBalance = tinyBig(token.quote).div(token.quote_rate);
   const roundedBalance = unroundedBalance.lt(0.001)
@@ -34,7 +33,7 @@ const TokenRow: React.FunctionComponent<{ token: Tokens[number] }> = ({
     : unroundedBalance.gt(1000)
       ? unroundedBalance.round(2)
       : unroundedBalance.round(5);
-  const { isLoading, isSuccess } = useWaitForTransaction({
+  const { isLoading, isSuccess } = useWaitForTransactionReceipt({
     hash: pendingTxn?.blockHash || undefined,
   });
   return (
@@ -72,8 +71,7 @@ export const GetTokens = () => {
   const [error, setError] = useState('');
   const [checkedRecords, setCheckedRecords] = useAtom(checkedTokensAtom);
 
-  const { address, isConnected } = useAccount();
-  const { chain } = useNetwork();
+  const { address, isConnected, chain } = useAccount();
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -88,21 +86,22 @@ export const GetTokens = () => {
       setError(`Chain ${chain?.id} not supported. Coming soon!`);
     }
     setLoading(false);
-  }, [address, chain?.id]);
+  }, [address, chain, setTokens]);
 
   useEffect(() => {
     if (address) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchData();
       setCheckedRecords({});
     }
-  }, [address, chain?.id]);
+  }, [address, chain, fetchData, setCheckedRecords]);
 
   useEffect(() => {
     if (!isConnected) {
       setTokens([]);
       setCheckedRecords({});
     }
-  }, [isConnected]);
+  }, [isConnected, setTokens, setCheckedRecords]);
 
   if (loading) {
     return <Loading>Loading</Loading>;

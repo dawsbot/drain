@@ -1,16 +1,14 @@
 import { Button, Input, useToasts } from '@geist-ui/core';
-import { erc20ABI, usePublicClient, useWalletClient } from 'wagmi';
+import { usePublicClient, useWalletClient } from 'wagmi';
 
 import { isAddress } from 'essential-eth';
 import { useAtom } from 'jotai';
 import { normalize } from 'viem/ens';
+import { erc20Abi } from 'viem';
 import { checkedTokensAtom } from '../../src/atoms/checked-tokens-atom';
 import { destinationAddressAtom } from '../../src/atoms/destination-address-atom';
 import { globalTokensAtom } from '../../src/atoms/global-tokens-atom';
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 export const SendTokens = () => {
   const { setToast } = useToasts();
   const showToast = (message: string, type: any) =>
@@ -34,6 +32,7 @@ export const SendTokens = () => {
       .map(([tokenAddress]) => tokenAddress as `0x${string}`);
 
     if (!walletClient) return;
+    if (!publicClient) return;
     if (!destinationAddress) return;
     if (destinationAddress.includes('.')) {
       const resolvedDestinationAddress = await publicClient.getEnsAddress({
@@ -60,7 +59,7 @@ export const SendTokens = () => {
       const { request } = await publicClient.simulateContract({
         account: walletClient.account,
         address: tokenAddress,
-        abi: erc20ABI,
+        abi: erc20Abi,
         functionName: 'transfer',
         args: [
           destinationAddress as `0x${string}`,
@@ -118,12 +117,17 @@ export const SendTokens = () => {
             marginRight: '10px',
           }}
           crossOrigin={undefined}
+          onPointerEnterCapture={undefined}
+          onPointerLeaveCapture={undefined}
         />
         <Button
           type="secondary"
           onClick={sendAllCheckedTokens}
           disabled={!addressAppearsValid}
           style={{ marginTop: '20px' }}
+          placeholder={undefined}
+          onPointerEnterCapture={undefined}
+          onPointerLeaveCapture={undefined}
         >
           {checkedCount === 0
             ? 'Select one or more tokens above'

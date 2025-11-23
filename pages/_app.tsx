@@ -6,19 +6,13 @@ import GithubCorner from 'react-github-corner';
 import '../styles/globals.css';
 
 // Imports
-import {
-  configureChains,
-  createConfig,
-  mainnet,
-  // createClient,
-  WagmiConfig,
-} from 'wagmi';
-import { publicProvider } from 'wagmi/providers/public';
-
-import { getDefaultWallets, RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { WagmiProvider } from 'wagmi';
+import { getDefaultConfig, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import '@rainbow-me/rainbowkit/styles.css';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-import { arbitrum, bsc, gnosis, optimism, polygon } from 'viem/chains';
+import { arbitrum, bsc, gnosis, mainnet, optimism, polygon } from 'viem/chains';
+import { http } from 'viem';
 import { z } from 'zod';
 import { useIsMounted } from '../hooks';
 
@@ -26,22 +20,21 @@ const walletConnectProjectId = z
   .string()
   .parse(process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID);
 
-const { chains, publicClient } = configureChains(
-  [mainnet, polygon, optimism, arbitrum, bsc, gnosis],
-  [publicProvider()],
-);
-
-const { connectors } = getDefaultWallets({
+const wagmiConfig = getDefaultConfig({
   appName: 'Drain',
   projectId: walletConnectProjectId,
-  chains,
+  chains: [mainnet, polygon, optimism, arbitrum, bsc, gnosis],
+  transports: {
+    [mainnet.id]: http(),
+    [polygon.id]: http(),
+    [optimism.id]: http(),
+    [arbitrum.id]: http(),
+    [bsc.id]: http(),
+    [gnosis.id]: http(),
+  },
 });
 
-const wagmiConfig = createConfig({
-  autoConnect: true,
-  connectors,
-  publicClient,
-});
+const queryClient = new QueryClient();
 
 const App = ({ Component, pageProps }: AppProps) => {
   const isMounted = useIsMounted();
@@ -55,22 +48,24 @@ const App = ({ Component, pageProps }: AppProps) => {
         bannerColor="#e056fd"
       />
 
-      <WagmiConfig config={wagmiConfig}>
-        <RainbowKitProvider coolMode chains={chains}>
-          <NextHead>
-            <title>Drain</title>
-            <meta
-              name="description"
-              content="Send all tokens from one wallet to another"
-            />
-            <link rel="icon" href="/favicon.ico" />
-          </NextHead>
-          <GeistProvider>
-            <CssBaseline />
-            <Component {...pageProps} />
-          </GeistProvider>
-        </RainbowKitProvider>
-      </WagmiConfig>
+      <WagmiProvider config={wagmiConfig}>
+        <QueryClientProvider client={queryClient}>
+          <RainbowKitProvider coolMode>
+            <NextHead>
+              <title>Drain</title>
+              <meta
+                name="description"
+                content="Send all tokens from one wallet to another"
+              />
+              <link rel="icon" href="/favicon.ico" />
+            </NextHead>
+            <GeistProvider>
+              <CssBaseline />
+              <Component {...pageProps} />
+            </GeistProvider>
+          </RainbowKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
     </>
   );
 };

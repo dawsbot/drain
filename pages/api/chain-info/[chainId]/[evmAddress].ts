@@ -1,68 +1,17 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { z } from 'zod';
-import { Tokens } from '../../../../src/fetch-tokens';
+import { MoralisClient } from '../../../../src/moralis-client';
 import { blacklistAddresses } from '../../../../src/token-lists';
-const COVALENT_API_KEY = z.string().parse(process.env.COVALENT_API_KEY);
-type ChainName =
-  | 'eth-mainnet'
-  | 'matic-mainnet'
-  | 'optimism-mainnet'
-  | 'arbitrum-mainnet'
-  | 'bsc-mainnet'
-  | 'gnosis-mainnet';
-function selectChainName(chainId: number): ChainName {
-  switch (chainId) {
-    case 1:
-      return 'eth-mainnet';
-    case 10:
-      return 'optimism-mainnet';
-    case 56:
-      return 'bsc-mainnet';
-    case 100:
-      return 'gnosis-mainnet';
-    case 137:
-      return 'matic-mainnet';
-    case 42161:
-      return 'arbitrum-mainnet';
-    default:
-      const errorMessage = `chainId "${chainId}" not supported`;
-      alert(errorMessage);
-      throw new Error(errorMessage);
-  }
-}
+
+// Validate environment variable
+const MORALIS_API_KEY = z.string().parse(process.env.MORALIS_API_KEY);
+
+// Initialize Moralis client (can be reused across requests)
+const moralisClient = new MoralisClient(MORALIS_API_KEY);
+
+// Fetch tokens using Moralis client
 const fetchTokens = async (chainId: number, evmAddress: string) => {
-  const chainName = selectChainName(chainId);
-  return fetch(
-    `https://api.covalenthq.com/v1/${chainName}/address/${evmAddress}/balances_v2/?quote-currency=USD&format=JSON&nft=false&no-nft-fetch=false&key=${COVALENT_API_KEY}`,
-  )
-    .then((res) => res.json())
-    .then((data: APIResponse) => {
-      const allRelevantItems = data.data.items.filter(
-        (item) => item.type !== 'dust',
-      );
-
-      const erc20s = allRelevantItems
-        .filter(
-          (item) =>
-            item.type === 'cryptocurrency' || item.type === 'stablecoin',
-        )
-        .filter((item) => !blacklistAddresses.includes(item.contract_address))
-        .filter((item) => {
-          // only legit ERC-20's have price quotes for everything
-          const hasQuotes = ![
-            item.quote,
-            item.quote_24h,
-            item.quote_rate,
-            item.quote_rate_24h,
-          ].includes(null);
-          return item.balance !== '0' && hasQuotes && item.quote > 1;
-        }) as Tokens;
-
-      const nfts = allRelevantItems.filter(
-        (item) => item.type === 'nft',
-      ) as Tokens;
-      return { erc20s, nfts };
-    });
+  return moralisClient.fetchTokens(chainId, evmAddress, blacklistAddresses);
 };
 
 const positiveIntFromString = (value: string): number => {
@@ -88,14 +37,33 @@ export default async function handler(
   try {
     const { chainId, evmAddress } = requestQuerySchema.parse(req.query);
 
+    // Validate that the chain is supported
+    const supportedChains = MoralisClient.getSupportedChainIds();
+    if (!supportedChains.includes(chainId)) {
+      return res.status(400).json({
+        success: false,
+        error: `Chain ID ${chainId} is not supported. Supported chains: ${supportedChains.join(', ')}`,
+      });
+    }
+
     const response = await fetchTokens(chainId, evmAddress);
 
     res.status(200).json({ success: true, data: response });
   } catch (error) {
     console.error('Error processing the request:', error);
-    res.status(500).json({ success: false, error: 'Internal Server Error' });
+
+    // Return more detailed error message in development
+    const errorMessage =
+      error instanceof Error ? error.message : 'Internal Server Error';
+
+    res.status(500).json({
+      success: false,
+      error: errorMessage,
+    });
   }
 }
+
+// Legacy Covalent interface - kept for reference but no longer used
 interface APIResponse {
   data: {
     address: '0xc0deaf6bd3f0c6574a6a625ef2f22f62a5150eab';
