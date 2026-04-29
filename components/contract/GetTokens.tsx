@@ -83,7 +83,8 @@ export const GetTokens = () => {
       );
       setTokens((newTokens as any).data.erc20s);
     } catch (error) {
-      setError(`Chain ${chain?.id} not supported. Coming soon!`);
+      const message = error instanceof Error ? error.message : String(error);
+      setError(`Chain ${chain?.id}: ${message}`);
     }
     setLoading(false);
   }, [address, chain, setTokens]);

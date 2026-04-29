@@ -1,7 +1,10 @@
 export const httpFetchTokens = async (chainId: number, evmAddress: string) => {
-  return fetch(`/api/chain-info/${chainId}/${evmAddress}`).then((res) =>
-    res.json(),
-  );
+  const res = await fetch(`/api/chain-info/${chainId}/${evmAddress}`);
+  const body = await res.json();
+  if (!res.ok || body?.success === false) {
+    throw new Error(body?.error || `Request failed with status ${res.status}`);
+  }
+  return body;
 };
 export type Tokens = ReadonlyArray<{
   contract_decimals: number;
