@@ -3,7 +3,6 @@ import { usePublicClient, useWalletClient } from 'wagmi';
 
 import { isAddress } from 'essential-eth';
 import { useAtom } from 'jotai';
-import { normalize } from 'viem/ens';
 import { erc20Abi } from 'viem';
 import { checkedTokensAtom } from '../../src/atoms/checked-tokens-atom';
 import { destinationAddressAtom } from '../../src/atoms/destination-address-atom';
@@ -35,11 +34,18 @@ export const SendTokens = () => {
     if (!publicClient) return;
     if (!destinationAddress) return;
     if (destinationAddress.includes('.')) {
-      const resolvedDestinationAddress = await publicClient.getEnsAddress({
-        name: normalize(destinationAddress),
-      });
-      resolvedDestinationAddress &&
-        setDestinationAddress(resolvedDestinationAddress);
+      const response = await fetch(
+        `/api/ens/${encodeURIComponent(destinationAddress)}`,
+      );
+      const { address } = (await response.json()) as {
+        success: boolean;
+        address: `0x${string}` | null;
+      };
+      if (address) {
+        setDestinationAddress(address);
+      } else {
+        showToast(`Could not resolve ${destinationAddress}`, 'warning');
+      }
       return;
     }
     // hack to ensure resolving the ENS name above completes

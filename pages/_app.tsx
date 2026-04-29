@@ -12,7 +12,7 @@ import '@rainbow-me/rainbowkit/styles.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { arbitrum, bsc, gnosis, mainnet, optimism, polygon } from 'viem/chains';
-import { http } from 'viem';
+import { fallback, http } from 'viem';
 import { z } from 'zod';
 import { useIsMounted } from '../hooks';
 
@@ -25,7 +25,11 @@ const wagmiConfig = getDefaultConfig({
   projectId: walletConnectProjectId,
   chains: [mainnet, polygon, optimism, arbitrum, bsc, gnosis],
   transports: {
-    [mainnet.id]: http(),
+    [mainnet.id]: fallback([
+      http('https://eth.drpc.org'),
+      http('https://cloudflare-eth.com'),
+      http('https://eth.llamarpc.com'),
+    ]),
     [polygon.id]: http(),
     [optimism.id]: http(),
     [arbitrum.id]: http(),
