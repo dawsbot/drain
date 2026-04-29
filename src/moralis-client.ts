@@ -11,7 +11,10 @@ const CHAIN_ID_TO_MORALIS_CHAIN: Record<number, string> = {
   56: 'bsc',
   100: 'gnosis',
   137: 'polygon',
+  8453: 'base',
   42161: 'arbitrum',
+  43114: 'avalanche',
+  59144: 'linea',
 } as const;
 
 // Zod schema for a single token balance response from Moralis

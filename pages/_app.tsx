@@ -11,7 +11,17 @@ import { getDefaultConfig, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import '@rainbow-me/rainbowkit/styles.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-import { arbitrum, bsc, gnosis, mainnet, optimism, polygon } from 'viem/chains';
+import {
+  arbitrum,
+  avalanche,
+  base,
+  bsc,
+  gnosis,
+  linea,
+  mainnet,
+  optimism,
+  polygon,
+} from 'viem/chains';
 import { fallback, http } from 'viem';
 import { z } from 'zod';
 import { useIsMounted } from '../hooks';
@@ -23,18 +33,31 @@ const walletConnectProjectId = z
 const wagmiConfig = getDefaultConfig({
   appName: 'Drain',
   projectId: walletConnectProjectId,
-  chains: [mainnet, polygon, optimism, arbitrum, bsc, gnosis],
+  chains: [
+    mainnet,
+    polygon,
+    optimism,
+    arbitrum,
+    base,
+    avalanche,
+    linea,
+    bsc,
+    gnosis,
+  ],
   transports: {
     [mainnet.id]: fallback([
       http('https://eth.drpc.org'),
       http('https://cloudflare-eth.com'),
       http('https://eth.llamarpc.com'),
     ]),
-    [polygon.id]: http(),
-    [optimism.id]: http(),
-    [arbitrum.id]: http(),
-    [bsc.id]: http(),
-    [gnosis.id]: http(),
+    [polygon.id]: http('https://polygon.drpc.org'),
+    [optimism.id]: http('https://optimism.drpc.org'),
+    [arbitrum.id]: http('https://arbitrum.drpc.org'),
+    [base.id]: http('https://base.drpc.org'),
+    [avalanche.id]: http('https://avalanche.drpc.org'),
+    [linea.id]: http('https://linea.drpc.org'),
+    [bsc.id]: http('https://bsc.drpc.org'),
+    [gnosis.id]: http('https://gnosis.drpc.org'),
   },
 });
 
