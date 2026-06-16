@@ -62,6 +62,47 @@ export const SendTokens = () => {
       const token = tokens.find(
         (token) => token.contract_address === tokenAddress,
       );
+
+      // The default token (ETH, MATIC, AVAX, etc.) is the chain's native
+      // currency, not an ERC-20 contract. Move it with a plain value transfer
+      // instead of calling a non-existent `transfer` method on a pseudo-address.
+      if (token?.native_token) {
+        try {
+          const gasPrice = await publicClient.getGasPrice();
+          // Reserve gas for a standard 21000-gas value transfer, with a 2x
+          // buffer for base-fee movement between now and inclusion.
+          const gasReserve = gasPrice * BigInt(21000) * BigInt(2);
+          const value = BigInt(token.balance) - gasReserve;
+          if (value <= BigInt(0)) {
+            showToast(
+              `Not enough ${token.contract_ticker_symbol} to cover gas`,
+              'warning',
+            );
+            continue;
+          }
+          const res = await walletClient.sendTransaction({
+            account: walletClient.account,
+            to: destinationAddress as `0x${string}`,
+            value,
+          });
+          setCheckedRecords((old) => ({
+            ...old,
+            [tokenAddress]: {
+              ...old[tokenAddress],
+              pendingTxn: res,
+            },
+          }));
+        } catch (err: any) {
+          showToast(
+            `Error with ${token?.contract_ticker_symbol} ${
+              err?.reason || 'Unknown error'
+            }`,
+            'warning',
+          );
+        }
+        continue;
+      }
+
       const { request } = await publicClient.simulateContract({
         account: walletClient.account,
         address: tokenAddress,
