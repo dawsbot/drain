@@ -63,7 +63,7 @@ export interface NormalizedToken {
   supports_erc: ['erc20'];
   logo_url: string;
   last_transferred_at: string;
-  native_token: false;
+  native_token: boolean;
   type: 'cryptocurrency' | 'stablecoin';
   balance: string;
   balance_24h: string;
@@ -226,7 +226,7 @@ export class MoralisClient {
         supports_erc: ['erc20'] as ['erc20'],
         logo_url: token.logo || token.thumbnail || '',
         last_transferred_at: new Date().toISOString(), // Moralis doesn't provide this
-        native_token: false as const,
+        native_token: token.native_token ?? false,
         type: isStablecoin ? 'stablecoin' : 'cryptocurrency',
         balance: token.balance,
         balance_24h: balance24h,
