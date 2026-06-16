@@ -16,6 +16,31 @@ export const SendTokens = () => {
       type,
       delay: 4000,
     });
+  // A user declining the prompt in their wallet isn't an error worth alarming
+  // them about. EIP-1193 reports it as code 4001, which viem surfaces as a
+  // UserRejectedRequestError (sometimes wrapped a few levels deep in `cause`).
+  const isUserRejection = (err: any): boolean => {
+    for (let e = err; e; e = e.cause) {
+      if (e.code === 4001 || e.name === 'UserRejectedRequestError') return true;
+    }
+    const message = `${err?.shortMessage ?? ''} ${err?.message ?? ''}`;
+    return /user rejected|user denied|rejected the request|denied transaction/i.test(
+      message,
+    );
+  };
+  const handleTransferError = (symbol: string | undefined, err: any) => {
+    const token = symbol || 'token';
+    if (isUserRejection(err)) {
+      showToast(`Skipped ${token} — transfer cancelled`, 'default');
+      return;
+    }
+    showToast(
+      `Error with ${token}: ${
+        err?.shortMessage || err?.reason || err?.message || 'transaction failed'
+      }`,
+      'warning',
+    );
+  };
   const [tokens] = useAtom(globalTokensAtom);
   const [destinationAddress, setDestinationAddress] = useAtom(
     destinationAddressAtom,
@@ -62,6 +87,42 @@ export const SendTokens = () => {
       const token = tokens.find(
         (token) => token.contract_address === tokenAddress,
       );
+
+      // The default token (ETH, MATIC, AVAX, etc.) is the chain's native
+      // currency, not an ERC-20 contract. Move it with a plain value transfer
+      // instead of calling a non-existent `transfer` method on a pseudo-address.
+      if (token?.native_token) {
+        try {
+          const gasPrice = await publicClient.getGasPrice();
+          // Reserve gas for a standard 21000-gas value transfer, with a 2x
+          // buffer for base-fee movement between now and inclusion.
+          const gasReserve = gasPrice * BigInt(21000) * BigInt(2);
+          const value = BigInt(token.balance) - gasReserve;
+          if (value <= BigInt(0)) {
+            showToast(
+              `Not enough ${token.contract_ticker_symbol} to cover gas`,
+              'warning',
+            );
+            continue;
+          }
+          const res = await walletClient.sendTransaction({
+            account: walletClient.account,
+            to: destinationAddress as `0x${string}`,
+            value,
+          });
+          setCheckedRecords((old) => ({
+            ...old,
+            [tokenAddress]: {
+              ...old[tokenAddress],
+              pendingTxn: res,
+            },
+          }));
+        } catch (err: any) {
+          handleTransferError(token?.contract_ticker_symbol, err);
+        }
+        continue;
+      }
+
       const { request } = await publicClient.simulateContract({
         account: walletClient.account,
         address: tokenAddress,
@@ -85,12 +146,7 @@ export const SendTokens = () => {
           }));
         })
         .catch((err) => {
-          showToast(
-            `Error with ${token?.contract_ticker_symbol} ${
-              err?.reason || 'Unknown error'
-            }`,
-            'warning',
-          );
+          handleTransferError(token?.contract_ticker_symbol, err);
         });
     }
   };

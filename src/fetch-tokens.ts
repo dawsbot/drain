@@ -14,7 +14,7 @@ export type Tokens = ReadonlyArray<{
   supports_erc: ['erc20'];
   logo_url: string;
   last_transferred_at: string;
-  native_token: false;
+  native_token: boolean;
   type: string;
   balance: string;
   balance_24h: string;
