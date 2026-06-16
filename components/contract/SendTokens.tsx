@@ -16,6 +16,31 @@ export const SendTokens = () => {
       type,
       delay: 4000,
     });
+  // A user declining the prompt in their wallet isn't an error worth alarming
+  // them about. EIP-1193 reports it as code 4001, which viem surfaces as a
+  // UserRejectedRequestError (sometimes wrapped a few levels deep in `cause`).
+  const isUserRejection = (err: any): boolean => {
+    for (let e = err; e; e = e.cause) {
+      if (e.code === 4001 || e.name === 'UserRejectedRequestError') return true;
+    }
+    const message = `${err?.shortMessage ?? ''} ${err?.message ?? ''}`;
+    return /user rejected|user denied|rejected the request|denied transaction/i.test(
+      message,
+    );
+  };
+  const handleTransferError = (symbol: string | undefined, err: any) => {
+    const token = symbol || 'token';
+    if (isUserRejection(err)) {
+      showToast(`Skipped ${token} — transfer cancelled`, 'default');
+      return;
+    }
+    showToast(
+      `Error with ${token}: ${
+        err?.shortMessage || err?.reason || err?.message || 'transaction failed'
+      }`,
+      'warning',
+    );
+  };
   const [tokens] = useAtom(globalTokensAtom);
   const [destinationAddress, setDestinationAddress] = useAtom(
     destinationAddressAtom,
@@ -93,12 +118,7 @@ export const SendTokens = () => {
             },
           }));
         } catch (err: any) {
-          showToast(
-            `Error with ${token?.contract_ticker_symbol} ${
-              err?.reason || 'Unknown error'
-            }`,
-            'warning',
-          );
+          handleTransferError(token?.contract_ticker_symbol, err);
         }
         continue;
       }
@@ -126,12 +146,7 @@ export const SendTokens = () => {
           }));
         })
         .catch((err) => {
-          showToast(
-            `Error with ${token?.contract_ticker_symbol} ${
-              err?.reason || 'Unknown error'
-            }`,
-            'warning',
-          );
+          handleTransferError(token?.contract_ticker_symbol, err);
         });
     }
   };
