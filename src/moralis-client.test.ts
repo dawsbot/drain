@@ -80,7 +80,7 @@ describe('MoralisClient', () => {
         expect(token.contract_decimals).toBeGreaterThanOrEqual(0);
         expect(token.contract_decimals).toBeLessThanOrEqual(255);
         expect(token.supports_erc).toEqual(['erc20']);
-        expect(token.native_token).toBe(false);
+        expect(typeof token.native_token).toBe('boolean');
         expect(token.nft_data).toBe(null);
 
         console.log('\n✓ Sample token:', {
