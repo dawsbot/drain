@@ -1,9 +1,15 @@
 import { Button, Input, useToasts } from '@geist-ui/core';
-import { usePublicClient, useWalletClient } from 'wagmi';
+import {
+  useCapabilities,
+  useChainId,
+  useSendCalls,
+  usePublicClient,
+  useWalletClient,
+} from 'wagmi';
 
 import { isAddress } from 'essential-eth';
 import { useAtom } from 'jotai';
-import { erc20Abi } from 'viem';
+import { encodeFunctionData, erc20Abi } from 'viem';
 import { checkedTokensAtom } from '../../src/atoms/checked-tokens-atom';
 import { destinationAddressAtom } from '../../src/atoms/destination-address-atom';
 import { globalTokensAtom } from '../../src/atoms/global-tokens-atom';
@@ -48,16 +54,14 @@ export const SendTokens = () => {
   const [checkedRecords, setCheckedRecords] = useAtom(checkedTokensAtom);
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
-  const sendAllCheckedTokens = async () => {
-    const tokensToSend: ReadonlyArray<`0x${string}`> = Object.entries(
-      checkedRecords,
-    )
-      .filter(([tokenAddress, { isChecked }]) => isChecked)
-      .map(([tokenAddress]) => tokenAddress as `0x${string}`);
+  const chainId = useChainId();
+  const { sendCallsAsync } = useSendCalls();
+  const { data: capabilities } = useCapabilities();
 
-    if (!walletClient) return;
-    if (!publicClient) return;
-    if (!destinationAddress) return;
+  // Resolve the destination, following an ENS name to its address if needed.
+  // Returns the final 0x address, or null when it could not be resolved.
+  const resolveDestinationAddress = async (): Promise<`0x${string}` | null> => {
+    if (!destinationAddress) return null;
     if (destinationAddress.includes('.')) {
       const response = await fetch(
         `/api/ens/${encodeURIComponent(destinationAddress)}`,
@@ -66,24 +70,72 @@ export const SendTokens = () => {
         success: boolean;
         address: `0x${string}` | null;
       };
-      if (address) {
-        setDestinationAddress(address);
-      } else {
+      if (!address) {
         showToast(`Could not resolve ${destinationAddress}`, 'warning');
+        return null;
       }
-      return;
+      setDestinationAddress(address);
+      return address;
     }
-    // hack to ensure resolving the ENS name above completes
+    return destinationAddress as `0x${string}`;
+  };
+
+  const tokenBalance = (tokenAddress: `0x${string}`): bigint => {
+    const token = tokens.find(
+      (token) => token.contract_address === tokenAddress,
+    );
+    return BigInt(token?.balance || '0');
+  };
+
+  // Mark a token as having a pending transaction so the UI disables it.
+  const markPending = (tokenAddress: `0x${string}`, txn: any) => {
+    setCheckedRecords((old) => ({
+      ...old,
+      [tokenAddress]: {
+        ...old[tokenAddress],
+        pendingTxn: txn,
+      },
+    }));
+  };
+
+  // Native account abstraction (EIP-7702 / EIP-5792): ask the wallet to run
+  // every transfer as a single atomic batch. One signature, one transaction.
+  const sendBatchedTokens = async (
+    tokensToSend: ReadonlyArray<`0x${string}`>,
+    toAddress: `0x${string}`,
+  ) => {
+    const calls = tokensToSend.map((tokenAddress) => ({
+      to: tokenAddress,
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [toAddress, tokenBalance(tokenAddress)],
+      }),
+    }));
+
+    // DIAGNOSTIC: what does the wallet say it can do for this chain?
+    console.log('[drain] chainId', chainId);
+    console.log('[drain] wallet capabilities', capabilities);
+    console.log(
+      '[drain] atomic capability for chain',
+      (capabilities as any)?.[chainId]?.atomic,
+    );
+
+    const { id } = await sendCallsAsync({ calls, forceAtomic: true });
+    tokensToSend.forEach((tokenAddress) => markPending(tokenAddress, id));
+    showToast(
+      `Batched ${tokensToSend.length} transfers into one transaction`,
+      'success',
+    );
+  };
+
+  // Fallback for wallets that cannot batch: one transaction per token.
+  const sendTokensSequentially = async (
+    tokensToSend: ReadonlyArray<`0x${string}`>,
+    toAddress: `0x${string}`,
+  ) => {
+    if (!walletClient || !publicClient) return;
     for (const tokenAddress of tokensToSend) {
-      // const erc20Contract = getContract({
-      //   address: tokenAddress,
-      //   abi: erc20ABI,
-      //   client: { wallet: walletClient },
-      // });
-      // const transferFunction = erc20Contract.write.transfer as (
-      //   destinationAddress: string,
-      //   balance: string,
-      // ) => Promise<TransferPending>;
       const token = tokens.find(
         (token) => token.contract_address === tokenAddress,
       );
@@ -107,16 +159,10 @@ export const SendTokens = () => {
           }
           const res = await walletClient.sendTransaction({
             account: walletClient.account,
-            to: destinationAddress as `0x${string}`,
+            to: toAddress,
             value,
           });
-          setCheckedRecords((old) => ({
-            ...old,
-            [tokenAddress]: {
-              ...old[tokenAddress],
-              pendingTxn: res,
-            },
-          }));
+          markPending(tokenAddress, res);
         } catch (err: any) {
           handleTransferError(token?.contract_ticker_symbol, err);
         }
@@ -128,26 +174,54 @@ export const SendTokens = () => {
         address: tokenAddress,
         abi: erc20Abi,
         functionName: 'transfer',
-        args: [
-          destinationAddress as `0x${string}`,
-          BigInt(token?.balance || '0'),
-        ],
+        args: [toAddress, tokenBalance(tokenAddress)],
       });
 
       await walletClient
-        ?.writeContract(request)
+        .writeContract(request)
         .then((res) => {
-          setCheckedRecords((old) => ({
-            ...old,
-            [tokenAddress]: {
-              ...old[tokenAddress],
-              pendingTxn: res,
-            },
-          }));
+          markPending(tokenAddress, res);
         })
         .catch((err) => {
           handleTransferError(token?.contract_ticker_symbol, err);
         });
+    }
+  };
+
+  const sendAllCheckedTokens = async () => {
+    const tokensToSend: ReadonlyArray<`0x${string}`> = Object.entries(
+      checkedRecords,
+    )
+      .filter(([, { isChecked }]) => isChecked)
+      .map(([tokenAddress]) => tokenAddress as `0x${string}`);
+
+    if (!walletClient) return;
+    if (!publicClient) return;
+    if (tokensToSend.length === 0) return;
+
+    const toAddress = await resolveDestinationAddress();
+    if (!toAddress) return;
+
+    try {
+      // Prefer a single batched transaction. forceAtomic makes wallets that
+      // cannot guarantee atomicity reject, so we cleanly fall back below.
+      await sendBatchedTokens(tokensToSend, toAddress);
+    } catch (err) {
+      // DIAGNOSTIC: surface exactly why the batch failed before we fall back.
+      console.error('[drain] batch sendCalls failed', err);
+      const e = err as {
+        name?: string;
+        shortMessage?: string;
+        message?: string;
+        details?: string;
+      };
+      showToast(
+        `Batch failed (${e?.name || 'Error'}): ${
+          e?.shortMessage || e?.message || 'unknown'
+        }. Sending one-by-one instead.`,
+        'warning',
+      );
+      await sendTokensSequentially(tokensToSend, toAddress);
     }
   };
 
