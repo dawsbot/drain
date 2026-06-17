@@ -1,5 +1,11 @@
 import { Button, Input, useToasts } from '@geist-ui/core';
-import { useSendCalls, usePublicClient, useWalletClient } from 'wagmi';
+import {
+  useCapabilities,
+  useChainId,
+  useSendCalls,
+  usePublicClient,
+  useWalletClient,
+} from 'wagmi';
 
 import { isAddress } from 'essential-eth';
 import { useAtom } from 'jotai';
@@ -23,7 +29,9 @@ export const SendTokens = () => {
   const [checkedRecords, setCheckedRecords] = useAtom(checkedTokensAtom);
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
+  const chainId = useChainId();
   const { sendCallsAsync } = useSendCalls();
+  const { data: capabilities } = useCapabilities();
 
   // Resolve the destination, following an ENS name to its address if needed.
   // Returns the final 0x address, or null when it could not be resolved.
@@ -84,6 +92,14 @@ export const SendTokens = () => {
       }),
     }));
 
+    // DIAGNOSTIC: what does the wallet say it can do for this chain?
+    console.log('[drain] chainId', chainId);
+    console.log('[drain] wallet capabilities', capabilities);
+    console.log(
+      '[drain] atomic capability for chain',
+      (capabilities as any)?.[chainId]?.atomic,
+    );
+
     const { id } = await sendCallsAsync({ calls, forceAtomic: true });
     tokensToSend.forEach((tokenAddress) => markPending(tokenAddress, id));
     showToast(
@@ -142,6 +158,20 @@ export const SendTokens = () => {
       // cannot guarantee atomicity reject, so we cleanly fall back below.
       await sendBatchedTokens(tokensToSend, toAddress);
     } catch (err) {
+      // DIAGNOSTIC: surface exactly why the batch failed before we fall back.
+      console.error('[drain] batch sendCalls failed', err);
+      const e = err as {
+        name?: string;
+        shortMessage?: string;
+        message?: string;
+        details?: string;
+      };
+      showToast(
+        `Batch failed (${e?.name || 'Error'}): ${
+          e?.shortMessage || e?.message || 'unknown'
+        }. Sending one-by-one instead.`,
+        'warning',
+      );
       await sendTokensSequentially(tokensToSend, toAddress);
     }
   };
