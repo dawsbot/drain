@@ -1,4 +1,4 @@
-import { Button, Input, useToasts } from '@geist-ui/core';
+import { useToasts } from '@geist-ui/core';
 import {
   useCapabilities,
   useChainId,
@@ -231,45 +231,77 @@ export const SendTokens = () => {
   const checkedCount = Object.values(checkedRecords).filter(
     (record) => record.isChecked,
   ).length;
+  const checkedUsd = tokens.reduce(
+    (sum, token) =>
+      checkedRecords[token.contract_address as `0x${string}`]?.isChecked
+        ? sum + Number(token.quote || 0)
+        : sum,
+    0,
+  );
+  const usdLabel = usdFormatter.format(checkedUsd);
+
+  const addressState = addressAppearsValid
+    ? 'success'
+    : destinationAddress.length > 0
+      ? 'warning'
+      : 'default';
+
   return (
-    <div style={{ margin: '20px' }}>
-      <form>
-        Destination Address:
-        <Input
+    <div className="panel send">
+      <div className="field">
+        <label className="field__label" htmlFor="drain-destination">
+          Draining to
+        </label>
+        <input
+          id="drain-destination"
+          className="address-input"
           required
           value={destinationAddress}
           placeholder="vitalik.eth"
           onChange={(e) => setDestinationAddress(e.target.value)}
-          type={
-            addressAppearsValid
-              ? 'success'
-              : destinationAddress.length > 0
-                ? 'warning'
-                : 'default'
-          }
-          width="100%"
-          style={{
-            marginLeft: '10px',
-            marginRight: '10px',
-          }}
-          crossOrigin={undefined}
-          onPointerEnterCapture={undefined}
-          onPointerLeaveCapture={undefined}
+          data-state={addressState}
+          spellCheck={false}
+          autoCapitalize="off"
+          autoCorrect="off"
         />
-        <Button
-          type="secondary"
-          onClick={sendAllCheckedTokens}
-          disabled={!addressAppearsValid}
-          style={{ marginTop: '20px' }}
-          placeholder={undefined}
-          onPointerEnterCapture={undefined}
-          onPointerLeaveCapture={undefined}
-        >
+      </div>
+
+      <div className="drain-summary">
+        <span>
           {checkedCount === 0
-            ? 'Select one or more tokens above'
-            : `Send ${checkedCount} tokens`}
-        </Button>
-      </form>
+            ? 'Nothing selected'
+            : `${checkedCount} ${
+                checkedCount === 1 ? 'token' : 'tokens'
+              } selected`}
+        </span>
+        {checkedCount > 0 && (
+          <span>
+            <strong>{usdLabel}</strong>
+          </span>
+        )}
+      </div>
+
+      <button
+        className="drain-btn"
+        onClick={sendAllCheckedTokens}
+        disabled={!addressAppearsValid || checkedCount === 0}
+        type="button"
+      >
+        <span>
+          {checkedCount === 0
+            ? 'Select tokens to drain'
+            : !addressAppearsValid
+              ? 'Enter a destination'
+              : `Drain ${checkedCount} ${
+                  checkedCount === 1 ? 'token' : 'tokens'
+                } · ${usdLabel}`}
+        </span>
+      </button>
     </div>
   );
 };
+
+const usdFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+});
