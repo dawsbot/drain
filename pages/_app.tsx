@@ -1,13 +1,16 @@
 import { CssBaseline, GeistProvider } from '@geist-ui/core';
 import type { AppProps } from 'next/app';
 import NextHead from 'next/head';
-import GithubCorner from 'react-github-corner';
 // @ts-ignore
 import '../styles/globals.css';
 
 // Imports
 import { WagmiProvider } from 'wagmi';
-import { getDefaultConfig, RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import {
+  getDefaultConfig,
+  RainbowKitProvider,
+  darkTheme,
+} from '@rainbow-me/rainbowkit';
 import '@rainbow-me/rainbowkit/styles.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -69,15 +72,17 @@ const App = ({ Component, pageProps }: AppProps) => {
   if (!isMounted) return null;
   return (
     <>
-      <GithubCorner
-        href="https://github.com/dawsbot/drain"
-        size="140"
-        bannerColor="#e056fd"
-      />
-
       <WagmiProvider config={wagmiConfig}>
         <QueryClientProvider client={queryClient}>
-          <RainbowKitProvider coolMode>
+          <RainbowKitProvider
+            coolMode
+            theme={darkTheme({
+              accentColor: '#c8fa3c',
+              accentColorForeground: '#07080a',
+              borderRadius: 'medium',
+              overlayBlur: 'small',
+            })}
+          >
             <NextHead>
               <title>Drain</title>
               <meta
@@ -86,7 +91,7 @@ const App = ({ Component, pageProps }: AppProps) => {
               />
               <link rel="icon" href="/favicon.ico" />
             </NextHead>
-            <GeistProvider>
+            <GeistProvider themeType="dark">
               <CssBaseline />
               <Component {...pageProps} />
             </GeistProvider>
