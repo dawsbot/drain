@@ -1,0 +1,62 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Drain preview</title>
+  <desc id="desc">Drain is an open-source EVM wallet rescue and token migration tool.</desc>
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#D7FF45" stop-opacity="0.45"/>
+      <stop offset="45%" stop-color="#8FBF20" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#020608" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="mercury" x1="155" y1="127" x2="1037" y2="542" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F4F8FB"/>
+      <stop offset="0.24" stop-color="#8A949E"/>
+      <stop offset="0.48" stop-color="#EEF3F4"/>
+      <stop offset="0.73" stop-color="#66717B"/>
+      <stop offset="1" stop-color="#D7FF45"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#111A20" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#05080B" stop-opacity="0.95"/>
+    </linearGradient>
+    <filter id="blur" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur stdDeviation="36"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" fill="#030608"/>
+  <circle cx="907" cy="132" r="290" fill="url(#glow)" filter="url(#blur)"/>
+  <circle cx="236" cy="534" r="230" fill="#D7FF45" opacity="0.09" filter="url(#blur)"/>
+
+  <path d="M0 500C155 435 268 481 392 421C512 363 535 221 682 201C814 183 904 281 1030 236C1105 210 1154 158 1200 111V630H0V500Z" fill="#0A1014"/>
+  <path d="M90 475C230 396 335 438 463 364C594 288 647 184 775 198C886 210 944 308 1057 274C1110 258 1159 221 1200 177" stroke="url(#mercury)" stroke-width="10" stroke-linecap="round" opacity="0.85"/>
+
+  <rect x="82" y="78" width="1036" height="474" rx="34" fill="url(#panel)" stroke="#22313A" stroke-width="2"/>
+  <rect x="116" y="113" width="968" height="404" rx="26" fill="#071015" stroke="#17232B"/>
+
+  <g transform="translate(156 154)">
+    <circle cx="29" cy="29" r="29" fill="#D7FF45"/>
+    <path d="M29 11C37 24 43 34 43 42C43 50 37 56 29 56C21 56 15 50 15 42C15 34 21 24 29 11Z" fill="#041014"/>
+    <text x="78" y="46" fill="#F7FAFC" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="48" font-weight="800" letter-spacing="0.12em">DRAIN</text>
+  </g>
+
+  <text x="156" y="271" fill="#F3F7F8" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="58" font-weight="850" letter-spacing="-0.04em">Rescue or migrate</text>
+  <text x="156" y="335" fill="#D7FF45" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="58" font-weight="850" letter-spacing="-0.04em">every EVM token</text>
+  <text x="156" y="393" fill="#AAB7BE" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="24" font-weight="500">Open-source wallet rescue and token migration.</text>
+  <text x="156" y="430" fill="#AAB7BE" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="24" font-weight="500">Non-custodial. You approve every transaction.</text>
+
+  <g transform="translate(740 156)">
+    <rect width="292" height="296" rx="28" fill="#0D171D" stroke="#273640"/>
+    <rect x="28" y="32" width="236" height="48" rx="16" fill="#14232A"/>
+    <circle cx="55" cy="56" r="13" fill="#D7FF45"/>
+    <rect x="82" y="48" width="116" height="12" rx="6" fill="#DDE5E7"/>
+    <rect x="28" y="105" width="236" height="48" rx="16" fill="#14232A"/>
+    <circle cx="55" cy="129" r="13" fill="#7BDFFF"/>
+    <rect x="82" y="121" width="144" height="12" rx="6" fill="#DDE5E7"/>
+    <rect x="28" y="178" width="236" height="48" rx="16" fill="#14232A"/>
+    <circle cx="55" cy="202" r="13" fill="#C991FF"/>
+    <rect x="82" y="194" width="96" height="12" rx="6" fill="#DDE5E7"/>
+    <rect x="28" y="252" width="236" height="16" rx="8" fill="#D7FF45"/>
+  </g>
+
+  <text x="156" y="493" fill="#DDE5E7" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="22" font-weight="700">github.com/dawsbot/drain</text>
+</svg>
