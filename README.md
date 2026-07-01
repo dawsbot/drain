@@ -11,7 +11,7 @@
 - **Source:** https://github.com/dawsbot/drain
 - **Original ETHGlobal project:** https://ethglobal.com/showcase/drain-6f9sc
 
-![Drain preview](https://imgur.com/VQIB0A9.png)
+![Drain preview](./public/drain-preview.svg)
 
 ---
 
