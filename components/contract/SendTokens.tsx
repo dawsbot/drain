@@ -9,9 +9,10 @@ import {
 
 import { isAddress } from 'essential-eth';
 import { useAtom } from 'jotai';
-import { encodeFunctionData, erc20Abi } from 'viem';
+import { erc20Abi } from 'viem';
 import { checkedTokensAtom } from '../../src/atoms/checked-tokens-atom';
 import { destinationAddressAtom } from '../../src/atoms/destination-address-atom';
+import { buildTokenCalls, CallableToken } from '../../src/build-token-calls';
 import { globalTokensAtom } from '../../src/atoms/global-tokens-atom';
 
 export const SendTokens = () => {
@@ -104,14 +105,37 @@ export const SendTokens = () => {
     tokensToSend: ReadonlyArray<`0x${string}`>,
     toAddress: `0x${string}`,
   ) => {
-    const calls = tokensToSend.map((tokenAddress) => ({
-      to: tokenAddress,
-      data: encodeFunctionData({
-        abi: erc20Abi,
-        functionName: 'transfer',
-        args: [toAddress, tokenBalance(tokenAddress)],
-      }),
-    }));
+    if (!publicClient) return;
+
+    // The default token (ETH, MATIC, AVAX, …) is the chain's native currency,
+    // not an ERC-20 contract. Encoding it as a `transfer()` call against its
+    // pseudo-address would revert the whole atomic batch, so buildTokenCalls
+    // moves it with a plain value transfer instead (mirroring the sequential
+    // fallback fixed in b875374). Gas price feeds the native gas reserve.
+    const gasPrice = await publicClient.getGasPrice();
+    const callableTokens: CallableToken[] = tokensToSend.map((tokenAddress) => {
+      const token = tokens.find(
+        (token) => token.contract_address === tokenAddress,
+      );
+      return {
+        contract_address: tokenAddress,
+        balance: token?.balance || '0',
+        native_token: Boolean(token?.native_token),
+        contract_ticker_symbol: token?.contract_ticker_symbol,
+      };
+    });
+
+    const { calls, skipped } = buildTokenCalls(
+      callableTokens,
+      toAddress,
+      gasPrice,
+    );
+
+    // Surface any native tokens too small to cover their gas reserve.
+    skipped.forEach(({ symbol }) =>
+      showToast(`Not enough ${symbol || 'token'} to cover gas`, 'warning'),
+    );
+    if (calls.length === 0) return;
 
     // DIAGNOSTIC: what does the wallet say it can do for this chain?
     console.log('[drain] chainId', chainId);
@@ -122,9 +146,13 @@ export const SendTokens = () => {
     );
 
     const { id } = await sendCallsAsync({ calls, forceAtomic: true });
-    tokensToSend.forEach((tokenAddress) => markPending(tokenAddress, id));
+    const skippedAddresses = new Set(skipped.map(({ address }) => address));
+    const sentTokens = tokensToSend.filter(
+      (tokenAddress) => !skippedAddresses.has(tokenAddress),
+    );
+    sentTokens.forEach((tokenAddress) => markPending(tokenAddress, id));
     showToast(
-      `Batched ${tokensToSend.length} transfers into one transaction`,
+      `Batched ${sentTokens.length} transfers into one transaction`,
       'success',
     );
   };
