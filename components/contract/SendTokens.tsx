@@ -1,11 +1,5 @@
 import { useToasts } from '@geist-ui/core';
-import {
-  useCapabilities,
-  useChainId,
-  useSendCalls,
-  usePublicClient,
-  useWalletClient,
-} from 'wagmi';
+import { useSendCalls, usePublicClient, useWalletClient } from 'wagmi';
 
 import { isAddress } from 'essential-eth';
 import { useAtom } from 'jotai';
@@ -54,9 +48,7 @@ export const SendTokens = () => {
   const [checkedRecords, setCheckedRecords] = useAtom(checkedTokensAtom);
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
-  const chainId = useChainId();
   const { sendCallsAsync } = useSendCalls();
-  const { data: capabilities } = useCapabilities();
 
   // Resolve the destination, following an ENS name to its address if needed.
   // Returns the final 0x address, or null when it could not be resolved.
@@ -112,14 +104,6 @@ export const SendTokens = () => {
         args: [toAddress, tokenBalance(tokenAddress)],
       }),
     }));
-
-    // DIAGNOSTIC: what does the wallet say it can do for this chain?
-    console.log('[drain] chainId', chainId);
-    console.log('[drain] wallet capabilities', capabilities);
-    console.log(
-      '[drain] atomic capability for chain',
-      (capabilities as any)?.[chainId]?.atomic,
-    );
 
     const { id } = await sendCallsAsync({ calls, forceAtomic: true });
     tokensToSend.forEach((tokenAddress) => markPending(tokenAddress, id));
@@ -207,8 +191,6 @@ export const SendTokens = () => {
       // cannot guarantee atomicity reject, so we cleanly fall back below.
       await sendBatchedTokens(tokensToSend, toAddress);
     } catch (err) {
-      // DIAGNOSTIC: surface exactly why the batch failed before we fall back.
-      console.error('[drain] batch sendCalls failed', err);
       const e = err as {
         name?: string;
         shortMessage?: string;
