@@ -7,16 +7,15 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { MoralisClient } from './moralis-client';
 
-describe('MoralisClient Integration Tests', () => {
+const MORALIS_API_KEY = process.env.MORALIS_API_KEY;
+const describeWithMoralis = MORALIS_API_KEY ? describe : describe.skip;
+
+describeWithMoralis('MoralisClient Integration Tests', () => {
   let client: MoralisClient;
   const TEST_ADDRESS = '0x47ac0Fb4F2D84898e4D9E7b4DaB3C24507a6D503'; // Binance 8
 
   beforeAll(() => {
-    const apiKey = process.env.MORALIS_API_KEY;
-    if (!apiKey) {
-      throw new Error('MORALIS_API_KEY is required');
-    }
-    client = new MoralisClient(apiKey);
+    client = new MoralisClient(MORALIS_API_KEY!);
   });
 
   it('should successfully fetch and validate token data', async () => {
@@ -144,7 +143,10 @@ describe('MoralisClient Integration Tests', () => {
       56: 'BSC',
       100: 'Gnosis',
       137: 'Polygon',
+      8453: 'Base',
       42161: 'Arbitrum',
+      43114: 'Avalanche',
+      59144: 'Linea',
     };
 
     supportedChains.forEach((chainId) => {
@@ -153,7 +155,7 @@ describe('MoralisClient Integration Tests', () => {
       );
     });
 
-    expect(supportedChains).toHaveLength(6);
+    expect(supportedChains).toHaveLength(9);
     expect(supportedChains).toContain(1); // Ethereum
     expect(supportedChains).toContain(137); // Polygon
     expect(supportedChains).toContain(42161); // Arbitrum

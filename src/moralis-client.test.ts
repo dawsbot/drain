@@ -6,37 +6,30 @@ import { MoralisClient } from './moralis-client';
 const TEST_ADDRESS = '0x47ac0Fb4F2D84898e4D9E7b4DaB3C24507a6D503'; // Binance 8 (confirmed working)
 const ETHEREUM_CHAIN_ID = 1;
 const POLYGON_CHAIN_ID = 137;
+const MORALIS_API_KEY = process.env.MORALIS_API_KEY;
+const describeWithMoralis = MORALIS_API_KEY ? describe : describe.skip;
 
-describe('MoralisClient', () => {
+describe('MoralisClient configuration', () => {
+  it('should create a client with a valid API key', () => {
+    expect(new MoralisClient('test-api-key')).toBeInstanceOf(MoralisClient);
+  });
+
+  it('should throw error when API key is missing', () => {
+    expect(() => new MoralisClient('')).toThrow('Moralis API key is required');
+  });
+
+  it('should provide the supported chain IDs', () => {
+    expect(MoralisClient.getSupportedChainIds()).toEqual([
+      1, 10, 56, 100, 137, 8453, 42161, 43114, 59144,
+    ]);
+  });
+});
+
+describeWithMoralis('MoralisClient live API', () => {
   let client: MoralisClient;
 
   beforeAll(() => {
-    const apiKey = process.env.MORALIS_API_KEY;
-    if (!apiKey) {
-      throw new Error(
-        'MORALIS_API_KEY environment variable is required for tests',
-      );
-    }
-    client = new MoralisClient(apiKey);
-  });
-
-  describe('Initialization', () => {
-    it('should create a client with valid API key', () => {
-      expect(client).toBeInstanceOf(MoralisClient);
-    });
-
-    it('should throw error when API key is missing', () => {
-      expect(() => new MoralisClient('')).toThrow(
-        'Moralis API key is required',
-      );
-    });
-
-    it('should provide list of supported chain IDs', () => {
-      const supportedChains = MoralisClient.getSupportedChainIds();
-      expect(supportedChains).toEqual([1, 10, 56, 100, 137, 42161]);
-      expect(supportedChains).toContain(ETHEREUM_CHAIN_ID);
-      expect(supportedChains).toContain(POLYGON_CHAIN_ID);
-    });
+    client = new MoralisClient(MORALIS_API_KEY!);
   });
 
   describe('Fetch Tokens - Ethereum', () => {

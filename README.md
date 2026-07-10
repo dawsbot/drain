@@ -95,6 +95,9 @@ MORALIS_API_KEY=
 
 - Get a WalletConnect project ID from https://cloud.walletconnect.com/.
 - Get a Moralis API key from https://admin.moralis.io/.
+- Keep `MORALIS_API_KEY` server-side: use `.env.local` for local development
+  and the Vercel project environment for Preview and Production. Never prefix
+  it with `NEXT_PUBLIC_` or commit the real value.
 
 ## Verify the project
 
@@ -104,6 +107,10 @@ npx tsc --noEmit
 npm test
 npm run build
 ```
+
+The default test run skips live Moralis suites when `MORALIS_API_KEY` is not
+configured. Add the key to the ignored `.env.local` file to run those live API
+checks locally.
 
 ## Tech stack
 

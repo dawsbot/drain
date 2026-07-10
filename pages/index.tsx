@@ -1,4 +1,5 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit';
+import Link from 'next/link';
 import { useAccount } from 'wagmi';
 import { GetTokens, SendTokens } from '../components/contract';
 
@@ -43,6 +44,7 @@ export default function Home() {
 
       <footer className="drain-footer">
         Built for the paranoid &amp; the fresh-starters ·{' '}
+        <Link href="/compromised-wallet-rescue/">rescue guide</Link> ·{' '}
         <a
           href="https://github.com/dawsbot/drain"
           target="_blank"

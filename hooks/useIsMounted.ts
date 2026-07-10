@@ -1,9 +1,11 @@
 import * as React from 'react';
 
+const subscribe = () => () => {};
+
 export const useIsMounted = () => {
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useEffect(() => setMounted(true), []);
-
-  return mounted;
+  return React.useSyncExternalStore(
+    subscribe,
+    () => true,
+    () => false,
+  );
 };

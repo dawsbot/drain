@@ -14,10 +14,10 @@ for (const envFile of envFiles) {
   }
 }
 
-// Verify MORALIS_API_KEY is loaded
+// Live Moralis suites are opt-in so the default test run stays deterministic.
 if (!process.env.MORALIS_API_KEY) {
   console.warn(
-    '⚠️  MORALIS_API_KEY not found in environment variables. Tests may fail.',
+    'MORALIS_API_KEY not found. Live Moralis tests will be skipped.',
   );
-  console.warn('   Please create .env.local or .env with MORALIS_API_KEY');
+  console.warn('Add it to .env.local to run the live integration suites.');
 }
