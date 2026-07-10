@@ -1,6 +1,7 @@
 import { CssBaseline, GeistProvider } from '@geist-ui/core';
 import type { AppProps } from 'next/app';
 import NextHead from 'next/head';
+import type { NextPage } from 'next';
 // @ts-ignore
 import '../styles/globals.css';
 
@@ -66,9 +67,18 @@ const wagmiConfig = getDefaultConfig({
 
 const queryClient = new QueryClient();
 
-const App = ({ Component, pageProps }: AppProps) => {
+type DrainPage = NextPage & {
+  publicPage?: boolean;
+};
+
+type DrainAppProps = AppProps & {
+  Component: DrainPage;
+};
+
+const App = ({ Component, pageProps }: DrainAppProps) => {
   const isMounted = useIsMounted();
 
+  if (Component.publicPage) return <Component {...pageProps} />;
   if (!isMounted) return null;
   return (
     <>
