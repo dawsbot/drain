@@ -1,18 +1,17 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { MoralisClient } from './moralis-client';
 
+const MORALIS_API_KEY = process.env.MORALIS_API_KEY;
+const describeWithMoralis = MORALIS_API_KEY ? describe : describe.skip;
+
 /**
  * Diagnostic tests to verify Moralis API connectivity and response
  */
-describe('Moralis Diagnostic Tests', () => {
+describeWithMoralis('Moralis Diagnostic Tests', () => {
   let client: MoralisClient;
 
   beforeAll(() => {
-    const apiKey = process.env.MORALIS_API_KEY;
-    if (!apiKey) {
-      throw new Error('MORALIS_API_KEY is required');
-    }
-    client = new MoralisClient(apiKey);
+    client = new MoralisClient(MORALIS_API_KEY!);
   });
 
   it('should successfully connect to Moralis API', async () => {
@@ -121,15 +120,18 @@ describe('Moralis Diagnostic Tests', () => {
     const chains = MoralisClient.getSupportedChainIds();
 
     console.log('\nSupported chains:', chains);
-    expect(chains).toEqual([1, 10, 56, 100, 137, 42161]);
+    expect(chains).toEqual([1, 10, 56, 100, 137, 8453, 42161, 43114, 59144]);
 
-    console.log('✓ All 6 chains supported:', {
+    console.log('✓ All 9 chains supported:', {
       1: 'Ethereum',
       10: 'Optimism',
       56: 'BSC',
       100: 'Gnosis',
       137: 'Polygon',
+      8453: 'Base',
       42161: 'Arbitrum',
+      43114: 'Avalanche',
+      59144: 'Linea',
     });
   });
 });
